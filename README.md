@@ -1,1 +1,1 @@
-# stoqr
+# STOQR

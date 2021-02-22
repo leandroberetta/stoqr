@@ -29,7 +29,7 @@ interface AddItemState {
 function AddItem() {
     const dispatch = useDispatch();
     const history = useHistory();
-    
+
     const [values, setValues] = useState<AddItemState>({
         name: "",
         desired: "",
@@ -89,7 +89,7 @@ interface ItemProps {
 export function ItemRow(props: ItemProps) {
     const item = props.item
     const dispatch = useDispatch();
-    
+
     return (
         <tr key={item.id}>
             <th>{item.id}</th>
@@ -98,11 +98,8 @@ export function ItemRow(props: ItemProps) {
             <td>{item.actual}</td>
             <td>
                 <div className="float-end">
-                    <button className="btn btn-link"><i className="fas fa-edit"></i></button>
                     <button className="btn btn-link"><i className="fas fa-qrcode"></i></button>
                     <button className="btn btn-link" onClick={() => dispatch(deleteItem(item))}><i className="fas fa-trash"></i></button>
-                    <button className="btn btn-link"><i className="fas fa-arrow-up"></i></button>
-                    <button className="btn btn-link"><i className="fas fa-arrow-down"></i></button>
                 </div>
             </td>
         </tr>
@@ -116,9 +113,9 @@ export function ItemsIndex() {
     useEffect(() => {
         dispatch(fetchItems());
     }, []);
-    
+
     return (
-        <div>            
+        <div>
             <div className="row mt-4">
                 <div className="col-12">
                     <table className="table">

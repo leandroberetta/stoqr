@@ -23,7 +23,7 @@ type Item struct {
 
 // ItemRepository interface define the methods to persist items
 type ItemRepository interface {
-	CreateItem(item Item) error
+	CreateItem(item *Item) error
 	ReadItem(id int) (Item, error)
 	UpdateItem(id int, item Item) error
 	DeleteItem(id int) error
@@ -36,8 +36,8 @@ type ItemRepositorySQL struct {
 }
 
 // CreateItem persists an item into a database
-func (db *ItemRepositorySQL) CreateItem(item Item) error {
-	result := db.Create(&item)
+func (db *ItemRepositorySQL) CreateItem(item *Item) error {
+	result := db.Create(item)
 	return result.Error
 }
 
@@ -100,14 +100,18 @@ func (svc *ItemService) createItem(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 	defer r.Body.Close()
-	err = svc.Repository.CreateItem(item)
+	err = svc.Repository.CreateItem(&item)
 	if err != nil {
 		log.Fatal(err)
 	}
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(item)
 }
 
 func (svc *ItemService) readItem(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		return
+	}
 	params := mux.Vars(r)
 	id, err := strconv.Atoi(params["itemId"])
 	if err != nil {

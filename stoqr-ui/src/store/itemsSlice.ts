@@ -36,8 +36,8 @@ export const fetchItems = (): AppThunk => dispatch => {
 };
 
 export const createItem = (item: Item): AppThunk => dispatch => {
-  axios.post("http://localhost:8080/api/items", item).then(() => {
-    dispatch(add(item));
+  axios.post("http://localhost:8080/api/items", item).then(result => {
+    dispatch(add(result.data));
   }).catch(error => {
     console.log(error);
   });

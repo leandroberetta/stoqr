@@ -24,7 +24,7 @@ export function Menu() {
                 </button>
                 <div className="collapse navbar-collapse" id="navbarToggler">
                     <ul className="navbar-nav me-auto mb-2 mb-lg-0"></ul>                    
-                    <Link className="btn btn-link" to="items/create"><i className="fas fa-plus"></i></Link>
+                    <Link className="btn btn-link" to="/items/create"><i className="fas fa-plus"></i></Link>
                     <Link className="btn btn-link" to="/items/report"><i className="fas fa-download"></i></Link>
                     {itemsWithNoStock > 0 && <Link className="btn btn-link" to="/items/report"><span className="badge bg-danger">{itemsWithNoStock}</span></Link>}                        
                 </div>

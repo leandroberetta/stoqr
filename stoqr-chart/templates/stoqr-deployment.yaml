@@ -11,33 +11,38 @@ spec:
       app: stoqr
   strategy:
     type: RollingUpdate
-  template:      
+  template:
     metadata:
       labels:
         app: stoqr
     spec:
+      volumes:
+        - configMap:
+            name: stoqr
+          name: stoqr
       containers:
-      - image: quay.io/leandroberetta/stoqr-api:latest       
-        imagePullPolicy: Always
-        name: stoqr-api
-        env:
-        - name: STOQR_API_DB_HOST
-          value: stoqr-postgres
-        - name: STOQR_API_DB_USER
-          value: postgres
-        - name: STOQR_API_DB_PASSWORD
-          value: postgres
-        - name: STOQR_API_DB_NAME
-          value: postgres
-        - name: STOQR_API_DB_PORT
-          value: "5432"
-        ports:
-        - containerPort: 8080
-      - image: quay.io/leandroberetta/stoqr-ui:latest       
-        imagePullPolicy: Always
-        name: stoqr-ui
-        ports:
-        - containerPort: 8081
-        env:
-        - name: REACT_APP_STOQR_API_URL
-          value: "http://{{ .Values.url }}"
+        - image: quay.io/leandroberetta/stoqr-api:latest
+          imagePullPolicy: Always
+          name: stoqr-api
+          env:
+            - name: STOQR_API_DB_HOST
+              value: stoqr-postgres
+            - name: STOQR_API_DB_USER
+              value: postgres
+            - name: STOQR_API_DB_PASSWORD
+              value: postgres
+            - name: STOQR_API_DB_NAME
+              value: postgres
+            - name: STOQR_API_DB_PORT
+              value: "5432"
+          ports:
+            - containerPort: 8080
+        - image: quay.io/leandroberetta/stoqr-ui:latest
+          imagePullPolicy: Always
+          name: stoqr-ui
+          ports:
+            - containerPort: 8081
+          volumeMounts:
+            - mountPath: /usr/src/app/build/env.js
+              name: stoqr
+              subPath: env.js

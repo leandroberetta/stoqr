@@ -6,8 +6,8 @@ metadata:
     app: stoqr-postgres
 spec:
   ports:
-  - port: 5432
-    protocol: TCP
-    name: http
+    - port: 5432
+      protocol: TCP
+      name: http
   selector:
     app: stoqr-postgres

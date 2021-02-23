@@ -11,7 +11,7 @@ spec:
       app: stoqr-postgres
   strategy:
     type: RollingUpdate
-  template:      
+  template:
     metadata:
       annotations:
         sidecar.istio.io/inject: "true"
@@ -19,11 +19,11 @@ spec:
         app: stoqr-postgres
     spec:
       containers:
-      - image: postgres:latest       
-        imagePullPolicy: Always
-        name: stoqr-postgres
-        env:
-        - name: POSTGRES_PASSWORD
-          value: postgres
-        ports:
-        - containerPort: 5432
+        - image: postgres:latest
+          imagePullPolicy: Always
+          name: stoqr-postgres
+          env:
+            - name: POSTGRES_PASSWORD
+              value: postgres
+          ports:
+            - containerPort: 5432

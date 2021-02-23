@@ -1,4 +1,3 @@
-
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -13,34 +12,40 @@ spec:
             backend:
               service:
                 name: stoqr
-                port: 
+                port:
                   number: 8081
           - path: /static
             pathType: Prefix
             backend:
               service:
                 name: stoqr
-                port: 
+                port:
                   number: 8081
           - path: /favicon.ico
             pathType: Exact
             backend:
               service:
                 name: stoqr
-                port: 
-                  number: 8081                                    
+                port:
+                  number: 8081
+          - path: /env.js
+            pathType: Exact
+            backend:
+              service:
+                name: stoqr
+                port:
+                  number: 8081
           - path: /items
             pathType: Prefix
             backend:
               service:
                 name: stoqr
-                port: 
+                port:
                   number: 8081
           - path: /api/items
             pathType: Prefix
             backend:
               service:
                 name: stoqr
-                port: 
+                port:
                   number: 8080
-        

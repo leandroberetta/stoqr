@@ -6,11 +6,11 @@ metadata:
     app: stoqr
 spec:
   ports:
-  - port: 8080
-    protocol: TCP
-    name: api
-  - port: 8081
-    protocol: TCP
-    name: ui
+    - port: 8080
+      protocol: TCP
+      name: api
+    - port: 8081
+      protocol: TCP
+      name: ui
   selector:
     app: stoqr

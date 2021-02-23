@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stoqr
+data:
+  env.js: |
+    window.STOQR_API_URL = "http://{{ .Values.url }}/";

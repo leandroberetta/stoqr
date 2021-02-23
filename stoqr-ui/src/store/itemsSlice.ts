@@ -1,7 +1,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState, AppThunk } from './store';
 import { Item } from '../model/item';
-import axios from 'axios';
+import { axiosInstance } from '../service/service';
+import { AxiosResponse, AxiosError } from 'axios';
 
 interface ItemsState {
   items: Item[]
@@ -28,25 +29,25 @@ export const itemsSlice = createSlice({
 });
 
 export const fetchItems = (): AppThunk => dispatch => {
-  axios.get("http://localhost:8080/api/items").then(result => {
+  axiosInstance.get("api/items").then((result: AxiosResponse<Item[]>) => {
     dispatch(set(result.data))
-  }).catch(error => {
+  }).catch((error: AxiosError) => {
     console.log(error);
   });
 };
 
 export const createItem = (item: Item): AppThunk => dispatch => {
-  axios.post("http://localhost:8080/api/items", item).then(result => {
+  axiosInstance.post("api/items", item).then((result: AxiosResponse) => {
     dispatch(add(result.data));
-  }).catch(error => {
+  }).catch((error: AxiosError) => {
     console.log(error);
   });
 };
 
 export const deleteItem = (item: Item): AppThunk => dispatch => {
-  axios.delete("http://localhost:8080/api/items/" + item.id).then(() => {
+  axiosInstance.delete("api/items/" + item.id).then(() => {
     dispatch(remove(item));
-  }).catch(error => {
+  }).catch((error: AxiosError) => {
     console.log(error);
   });
 };

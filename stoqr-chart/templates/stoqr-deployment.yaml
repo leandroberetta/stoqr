@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: stoqr
+  name: stoqr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stoqr
+  strategy:
+    type: RollingUpdate
+  template:      
+    metadata:
+      labels:
+        app: stoqr
+    spec:
+      containers:
+      - image: quay.io/leandroberetta/stoqr-api:latest       
+        imagePullPolicy: Always
+        name: stoqr-api
+        env:
+        - name: STOQR_API_DB_HOST
+          value: stoqr-postgres
+        - name: STOQR_API_DB_USER
+          value: postgres
+        - name: STOQR_API_DB_PASSWORD
+          value: postgres
+        - name: STOQR_API_DB_NAME
+          value: postgres
+        - name: STOQR_API_DB_PORT
+          value: "5432"
+        ports:
+        - containerPort: 8080
+      - image: quay.io/leandroberetta/stoqr-ui:latest       
+        imagePullPolicy: Always
+        name: stoqr-ui
+        ports:
+        - containerPort: 8081
+        env:
+        - name: REACT_APP_STOQR_API_URL
+          value: "http://{{ .Values.url }}"

@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: stoqr-postgres
+  name: stoqr-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stoqr-postgres
+  strategy:
+    type: RollingUpdate
+  template:      
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "true"
+      labels:
+        app: stoqr-postgres
+    spec:
+      containers:
+      - image: postgres:latest       
+        imagePullPolicy: Always
+        name: stoqr-postgres
+        env:
+        - name: POSTGRES_PASSWORD
+          value: postgres
+        ports:
+        - containerPort: 5432

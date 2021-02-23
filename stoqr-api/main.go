@@ -170,6 +170,28 @@ func (svc *ItemService) deleteItem(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (svc *ItemService) withdrawItem(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		return
+	}
+	params := mux.Vars(r)
+	id, err := strconv.Atoi(params["itemId"])
+	if err != nil {
+		log.Fatal(err)
+	}
+	item, err := svc.Repository.ReadItem(id)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if item.Actual != 0 {
+		item.Actual = item.Actual - 1
+	}
+	err = svc.Repository.UpdateItem(id, item)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 // NewItemService creates a new item service
 func NewItemService(repository ItemRepository) *ItemService {
 	return &ItemService{Repository: repository}
@@ -205,6 +227,7 @@ func main() {
 	r.HandleFunc("/api/items", itemService.readItems).Methods(http.MethodGet).Queries("filter", "{filter}")
 	r.HandleFunc("/api/items/{itemId}", itemService.deleteItem).Methods(http.MethodDelete, http.MethodOptions)
 	r.HandleFunc("/api/items/{itemId}", itemService.updateItem).Methods(http.MethodPut)
+	r.HandleFunc("/api/items/withdraw/{itemId}", itemService.withdrawItem).Methods(http.MethodGet)
 	r.Use(corsAllowed)
 	log.Fatal(http.ListenAndServe(":8080", r))
 }

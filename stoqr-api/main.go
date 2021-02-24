@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 	"gorm.io/driver/postgres"
@@ -207,19 +210,24 @@ func corsAllowed(next http.Handler) http.Handler {
 }
 
 func main() {
+	log.Println("Starting STOQR")
+
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		os.Getenv("STOQR_API_DB_HOST"),
 		os.Getenv("STOQR_API_DB_USER"),
 		os.Getenv("STOQR_API_DB_PASSWORD"),
 		os.Getenv("STOQR_API_DB_NAME"),
 		os.Getenv("STOQR_API_DB_PORT"))
+
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}
 	db.AutoMigrate(&Item{})
+
 	itemRepository := NewItemRepositorySQL(db)
 	itemService := NewItemService(itemRepository)
+
 	r := mux.NewRouter()
 	r.HandleFunc("/api/items/{itemId}", itemService.readItem).Methods((http.MethodGet))
 	r.HandleFunc("/api/items", itemService.createItem).Methods(http.MethodPost, http.MethodOptions)
@@ -229,5 +237,23 @@ func main() {
 	r.HandleFunc("/api/items/{itemId}", itemService.updateItem).Methods(http.MethodPut)
 	r.HandleFunc("/api/items/withdraw/{itemId}", itemService.withdrawItem).Methods(http.MethodGet)
 	r.Use(corsAllowed)
-	log.Fatal(http.ListenAndServe(":8080", r))
+
+	srv := &http.Server{
+		Addr:    ":8080",
+		Handler: r,
+	}
+	log.Println("Serving at :8080")
+	go srv.ListenAndServe()
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	<-c
+
+	log.Println("Shutting down")
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+	defer cancel()
+	srv.Shutdown(ctx)
+
+	log.Println("Shutdown complete")
+	os.Exit(0)
 }

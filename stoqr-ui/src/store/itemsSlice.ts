@@ -23,7 +23,12 @@ export const itemsSlice = createSlice({
       state.items.push(action.payload);
     },
     remove: (state, action: PayloadAction<Item>) => {
-      state.items.splice(state.items.indexOf(action.payload), 1)
+      state.items.forEach((item, index) => {
+        console.log(item);
+        if (item.id === action.payload.id) {
+          state.items.splice(index, 1)
+        }          
+      });
     },
   },
 });

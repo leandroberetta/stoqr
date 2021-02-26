@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -93,9 +95,6 @@ type ItemService struct {
 }
 
 func (svc *ItemService) createItem(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodOptions {
-		return
-	}
 	item := Item{}
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&item)
@@ -112,9 +111,6 @@ func (svc *ItemService) createItem(w http.ResponseWriter, r *http.Request) {
 }
 
 func (svc *ItemService) readItem(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodOptions {
-		return
-	}
 	params := mux.Vars(r)
 	id, err := strconv.Atoi(params["itemId"])
 	if err != nil {
@@ -159,9 +155,6 @@ func (svc *ItemService) updateItem(w http.ResponseWriter, r *http.Request) {
 }
 
 func (svc *ItemService) deleteItem(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodOptions {
-		return
-	}
 	params := mux.Vars(r)
 	id, err := strconv.Atoi(params["itemId"])
 	if err != nil {
@@ -174,9 +167,6 @@ func (svc *ItemService) deleteItem(w http.ResponseWriter, r *http.Request) {
 }
 
 func (svc *ItemService) withdrawItem(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodOptions {
-		return
-	}
 	params := mux.Vars(r)
 	id, err := strconv.Atoi(params["itemId"])
 	if err != nil {
@@ -200,28 +190,64 @@ func NewItemService(repository ItemRepository) *ItemService {
 	return &ItemService{Repository: repository}
 }
 
-func corsAllowed(next http.Handler) http.Handler {
+func corsOriginMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
 		w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
 		next.ServeHTTP(w, r)
 	})
 }
 
-func main() {
-	log.Println("Starting STOQR")
+func options(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		return
+	}
+}
 
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+func checkPostgresConfig() error {
+	if host := os.Getenv("STOQR_API_DB_HOST"); host == "" {
+		return errors.New(("db: postgres host is empty"))
+	}
+	if port := os.Getenv("STOQR_API_DB_PORT"); port == "" {
+		return errors.New(("db: postgres port is empty"))
+	}
+	if user := os.Getenv("STOQR_API_DB_USER"); user == "" {
+		return errors.New(("db: postgres user is empty"))
+	}
+	if password := os.Getenv("STOQR_API_DB_PASSWORD"); password == "" {
+		return errors.New(("db: postgres password is empty"))
+	}
+	if name := os.Getenv("STOQR_API_DB_NAME"); name == "" {
+		return errors.New(("db: postgres db name is empty"))
+	}
+	return nil
+}
+
+func generatePostgresConnectionString() string {
+	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		os.Getenv("STOQR_API_DB_HOST"),
 		os.Getenv("STOQR_API_DB_USER"),
 		os.Getenv("STOQR_API_DB_PASSWORD"),
 		os.Getenv("STOQR_API_DB_NAME"),
 		os.Getenv("STOQR_API_DB_PORT"))
+}
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err != nil {
-		log.Fatal(err)
+func main() {
+	log.Println("Starting STOQR")
+
+	db := &gorm.DB{}
+	if err := checkPostgresConfig(); err != nil {
+		log.Println(err)
+		log.Println("falling back to SQLite")
+		db, err = gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{})
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		db, err = gorm.Open(postgres.Open(generatePostgresConnectionString()), &gorm.Config{})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 	db.AutoMigrate(&Item{})
 
@@ -229,14 +255,18 @@ func main() {
 	itemService := NewItemService(itemRepository)
 
 	r := mux.NewRouter()
-	r.HandleFunc("/api/items/{itemId}", itemService.readItem).Methods((http.MethodGet))
-	r.HandleFunc("/api/items", itemService.createItem).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/api/items", options).Methods(http.MethodOptions)
+	r.HandleFunc("/api/items", itemService.createItem).Methods(http.MethodPost)
 	r.HandleFunc("/api/items", itemService.readItems).Methods(http.MethodGet)
 	r.HandleFunc("/api/items", itemService.readItems).Methods(http.MethodGet).Queries("filter", "{filter}")
-	r.HandleFunc("/api/items/{itemId}", itemService.deleteItem).Methods(http.MethodDelete, http.MethodOptions)
+	r.HandleFunc("/api/items/{itemId}", options).Methods(http.MethodOptions)
+	r.HandleFunc("/api/items/{itemId}", itemService.readItem).Methods((http.MethodGet))
+	r.HandleFunc("/api/items/{itemId}", itemService.deleteItem).Methods(http.MethodDelete)
 	r.HandleFunc("/api/items/{itemId}", itemService.updateItem).Methods(http.MethodPut)
+	r.HandleFunc("/api/items/withdraw/{itemId}", options).Methods(http.MethodOptions)
 	r.HandleFunc("/api/items/withdraw/{itemId}", itemService.withdrawItem).Methods(http.MethodGet)
-	r.Use(corsAllowed)
+	r.Use(corsOriginMiddleware)
+	r.Use(mux.CORSMethodMiddleware(r))
 
 	srv := &http.Server{
 		Addr:    ":8080",

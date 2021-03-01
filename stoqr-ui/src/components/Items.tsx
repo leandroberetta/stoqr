@@ -106,8 +106,8 @@ function Add() {
         var err = null;
         if (validator) {
             err = validator(e.currentTarget.value)
-        }        
-        
+        }
+
         setValues({ ...values, [fieldName]: { value: e.currentTarget.value, error: err } });
     };
 

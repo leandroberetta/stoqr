@@ -10,5 +10,6 @@ export STOQR_API_DB_NAME=postgres
 export STOQR_API_DB_PORT=5432
 
 go build .
+
 ./stoqr-api
 ```

@@ -183,6 +183,8 @@ func (svc *ItemService) withdrawItem(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	w.Header().Set("content-type", "application/json")
+	json.NewEncoder(w).Encode(item)
 }
 
 // NewItemService creates a new item service

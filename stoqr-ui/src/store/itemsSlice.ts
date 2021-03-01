@@ -23,18 +23,24 @@ export const itemsSlice = createSlice({
       state.items.push(action.payload);
     },
     remove: (state, action: PayloadAction<Item>) => {
-      state.items.forEach((item, index) => {
-        console.log(item);
+      state.items.forEach((item, index) => {        
         if (item.id === action.payload.id) {
           state.items.splice(index, 1)
+        }          
+      });
+    },
+    withdraw: (state, action: PayloadAction<Item>) => {
+      state.items.forEach((item, index) => {        
+        if (item.id === action.payload.id) {
+          state.items[index].actual -= 1; 
         }          
       });
     },
   },
 });
 
-export const fetchItems = (): AppThunk => dispatch => {
-  axiosInstance.get("api/items").then((result: AxiosResponse<Item[]>) => {
+export const fetchItems = (filter: string|null): AppThunk => dispatch => {
+  axiosInstance.get("api/items", { params: { filter: filter } }).then((result: AxiosResponse<Item[]>) => {
     dispatch(set(result.data))
   }).catch((error: AxiosError) => {
     console.log(error);
@@ -57,8 +63,27 @@ export const deleteItem = (item: Item): AppThunk => dispatch => {
   });
 };
 
-export const { set, add, remove } = itemsSlice.actions;
+export const withdrawItem = (item: Item): AppThunk => dispatch => {
+  axiosInstance.get("api/items/withdraw/" + item.id).then(() => {
+    dispatch(withdraw(item));
+  }).catch((error: AxiosError) => {
+    console.log(error);
+  });
+};
+
+export const { set, add, remove, withdraw } = itemsSlice.actions;
 
 export const selectItems = (state: RootState) => state.items;
+
+export const selectItem = (id: number) => (state: RootState): Item|null => {
+  console.log("selectItem");
+  state.items.items.forEach(element => {
+    console.log(element);
+    if (element.id === id) {
+      return element;
+    }
+  });
+  return null;
+};
 
 export default itemsSlice.reducer;

@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/leandroberetta/stoqr/stoqr-api/models"
 	"github.com/leandroberetta/stoqr/stoqr-api/repositories"
+	"github.com/leandroberetta/stoqr/stoqr-api/server"
 )
 
 // ItemService contains the business logic of items
@@ -113,6 +114,19 @@ func (svc *ItemService) WithdrawItem(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("content-type", "application/json")
 	json.NewEncoder(w).Encode(item)
+}
+
+func (svc *ItemService) AddRoutes(r *mux.Router) {
+	r.HandleFunc("/api/items", server.Options).Methods(http.MethodOptions)
+	r.HandleFunc("/api/items", svc.CreateItem).Methods(http.MethodPost)
+	r.HandleFunc("/api/items", svc.ReadItems).Methods(http.MethodGet)
+	r.HandleFunc("/api/items", svc.ReadItems).Methods(http.MethodGet).Queries("filter", "{filter}")
+	r.HandleFunc("/api/items/{itemId}", server.Options).Methods(http.MethodOptions)
+	r.HandleFunc("/api/items/{itemId}", svc.ReadItem).Methods((http.MethodGet))
+	r.HandleFunc("/api/items/{itemId}", svc.DeleteItem).Methods(http.MethodDelete)
+	r.HandleFunc("/api/items/{itemId}", svc.UpdateItem).Methods(http.MethodPut)
+	r.HandleFunc("/api/items/withdraw/{itemId}", server.Options).Methods(http.MethodOptions)
+	r.HandleFunc("/api/items/withdraw/{itemId}", svc.WithdrawItem).Methods(http.MethodGet)
 }
 
 // NewItemService creates a new item service

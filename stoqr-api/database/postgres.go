@@ -4,6 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"os"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func checkPostgresConfig() error {
@@ -32,4 +35,8 @@ func generatePostgresConnectionString() string {
 		os.Getenv("STOQR_API_DB_PASSWORD"),
 		os.Getenv("STOQR_API_DB_NAME"),
 		os.Getenv("STOQR_API_DB_PORT"))
+}
+
+func openPostgres() (*gorm.DB, error) {
+	return gorm.Open(postgres.Open(generatePostgresConnectionString()), &gorm.Config{})
 }

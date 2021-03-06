@@ -1,8 +1,9 @@
 module github.com/leandroberetta/stoqr/stoqr-api
 
-go 1.15
+go 1.16
 
 require (
+	github.com/golang/mock v1.5.0
 	github.com/gorilla/mux v1.8.0
 	github.com/jackc/pgproto3/v2 v2.0.7 // indirect
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83 // indirect

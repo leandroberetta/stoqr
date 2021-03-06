@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/leandroberetta/stoqr/stoqr-api/database"
+	"github.com/leandroberetta/stoqr/stoqr-api/models"
 	"github.com/leandroberetta/stoqr/stoqr-api/repositories"
 	"github.com/leandroberetta/stoqr/stoqr-api/server"
 	"github.com/leandroberetta/stoqr/stoqr-api/services"
@@ -16,6 +17,7 @@ func main() {
 	log.Println("Starting STOQR")
 
 	database := database.Connect()
+	database.AutoMigrate(&models.Item{})
 
 	itemRepository := repositories.NewItemRepositorySQL(database)
 	itemService := services.NewItemService(itemRepository)

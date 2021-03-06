@@ -3,26 +3,23 @@ package database
 import (
 	"log"
 
-	"github.com/leandroberetta/stoqr/stoqr-api/models"
-	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
+// Connect connects to a Postgres database if config is ok, otherwise creates a SQLite database
 func Connect() *gorm.DB {
 	db := &gorm.DB{}
 	if err := checkPostgresConfig(); err != nil {
 		log.Printf("Falling back to SQLite: %s", err)
-		db, err = gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{})
+		db, err = openSQLite()
 		if err != nil {
 			log.Fatal(err)
 		}
 	} else {
-		db, err = gorm.Open(postgres.Open(generatePostgresConnectionString()), &gorm.Config{})
+		db, err = openPostgres()
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
-	db.AutoMigrate(&models.Item{})
 	return db
 }

@@ -126,7 +126,7 @@ func (svc *ItemService) WithdrawItem(w http.ResponseWriter, r *http.Request) {
 	item, err := svc.Repository.ReadItem(id)
 	if err != nil {
 		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	if item.Actual != 0 {
